@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 //use ytdl-core to download music video on youtube and stream it
 const lib = require('lib')({token: process.env.STDLIB_SECRET_TOKEN});
 const ytdl = require('ytdl-core');
