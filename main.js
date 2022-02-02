@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 //Hello there welcome to tuna bot source code
 //use ytdl-core to download music video on youtube and stream it
 const lib = require('lib')({token: process.env.STDLIB_SECRET_TOKEN});
