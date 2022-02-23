@@ -2,7 +2,7 @@ const lib = require("lib")({ token: process.env.STDLIB_SECRET_TOKEN });
 
 if (context.params.event.content.startsWith("!time")) {
   let timeZone =
-    context.params.event.content.split(" ")[1] || "America/Los_Angeles";
+    context.params.event.content.split(" ")[1] || "Asia/Tehran";
   let timeString;
   try {
     timeString = new Date().toLocaleString("en-US", {
