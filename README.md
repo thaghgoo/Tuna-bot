@@ -1,4 +1,4 @@
- # welcome to the captions of tuna 
+ # welcome to the description of tuna 
 
 The goal of this project is a music player robot in Discord,
 and we are developing it every day,
