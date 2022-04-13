@@ -24,6 +24,12 @@ client.login(process.env.CLIENT_TOKEN); //login bot using token
 
 client.on("message", (msg) => {
   switch (msg.content) {
+    case "!date":
+      msg.reply(Date());
+      break;
+    case "!time":
+      msg.reply(Date());
+      break;
     case "play":
       msg.reply("You mean !Play ?");
       break;
@@ -38,7 +44,7 @@ client.on("message", (msg) => {
 
 client.on("message", async (message) => {
   const prefix = "!";
-
+  
   const serverQueue = queue.get(message.guild.id);
 
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
