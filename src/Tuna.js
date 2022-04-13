@@ -3,7 +3,8 @@ const ytdl = require("ytdl-core");
 const { YTSearcher } = require("ytsearcher");
 const { Client, Intents } = require("discord.js"); //import discord.js
 
-const searcher = new YTSearcher({ //use ytsearcher and google api key for search on youtube
+const searcher = new YTSearcher({
+  //use ytsearcher and google api key for search on youtube
   key: "AIzaSyDe1RX3kxAheSg2AoP2IvmQHOTXHQKkOU8",
   revealed: true,
 });
@@ -21,14 +22,26 @@ client.on("ready", () => {
 });
 
 client.login(process.env.CLIENT_TOKEN); //login bot using token
+//time
+const currentdate = Date();
+
+const time = new Date(currentdate).toLocaleTimeString("en", {
+  timeStyle: "short",
+  hour12: false,
+});
+
+//date
+const date = new Date();
+date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
 
 client.on("message", (msg) => {
+  console.log(msg);
   switch (msg.content) {
     case "!date":
-      msg.reply(Date());
+      msg.reply(date);
       break;
     case "!time":
-      msg.reply(Date());
+      msg.reply(time);
       break;
     case "play":
       msg.reply("You mean !Play ?");
@@ -44,7 +57,7 @@ client.on("message", (msg) => {
 
 client.on("message", async (message) => {
   const prefix = "!";
-  
+
   const serverQueue = queue.get(message.guild.id);
 
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
