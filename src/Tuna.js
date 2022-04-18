@@ -12,10 +12,10 @@ const searcher = new YTSearcher({
 require("dotenv").config(); //initialize dotenv
 
 const client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], //initialize discord.js
 }); //create new client
 
-const queue = new Map();
+const queue = new Map(); //create new map for queues
 
 client.on("ready", () => {
   console.log(`Tuna: im online!`);
@@ -23,19 +23,18 @@ client.on("ready", () => {
 
 client.login(process.env.CLIENT_TOKEN); //login bot using token
 //time
-const currentdate = Date();
+const currenttime = Date(); //get current time
 
-const time = new Date(currentdate).toLocaleTimeString("en", {
+const time = new Date(currenttime).toLocaleTimeString("en", { 
   timeStyle: "short",
-  hour12: false,
+  hour12: true,
 });
 
 //date
-const date = new Date();
-date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+const currentdate = new Date(); 
+ const date = currentdate.getFullYear() + "-" + (currentdate.getMonth() + 1) + "-" + currentdate.getDate(); 
 
-client.on("message", (msg) => {
-  console.log(msg);
+client.on("message", (msg) => { //when message is received
   switch (msg.content) {
     case "!date":
       msg.reply(date);
@@ -58,12 +57,12 @@ client.on("message", (msg) => {
 client.on("message", async (message) => {
   const prefix = "!";
 
-  const serverQueue = queue.get(message.guild.id);
+  const serverQueue = queue.get(message.guild.id); //get server queue
 
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
   const command = args.shift().toLowerCase();
 
-  switch (command) {
+  switch (command) {  //switch case for commands
     case "play":
       execute(message, serverQueue);
       break;
