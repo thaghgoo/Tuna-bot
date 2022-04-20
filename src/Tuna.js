@@ -2,9 +2,9 @@ const { executionAsyncResource } = require("async_hooks");
 const ytdl = require("ytdl-core");
 const { YTSearcher } = require("ytsearcher");
 const { Client, Intents } = require("discord.js"); //import discord.js
+var fs = require("fs"); //import fs
 
-const searcher = new YTSearcher({
-  //use ytsearcher and google api key for search on youtube
+const searcher = new YTSearcher({ //use ytsearcher and google api key for search on youtube
   key: "AIzaSyDe1RX3kxAheSg2AoP2IvmQHOTXHQKkOU8",
   revealed: true,
 });
@@ -25,16 +25,29 @@ client.login(process.env.CLIENT_TOKEN); //login bot using token
 //time
 const currenttime = Date(); //get current time
 
-const time = new Date(currenttime).toLocaleTimeString("en", { 
+const time = new Date(currenttime).toLocaleTimeString("en", {
   timeStyle: "short",
   hour12: true,
 });
 
 //date
-const currentdate = new Date(); 
- const date = currentdate.getFullYear() + "-" + (currentdate.getMonth() + 1) + "-" + currentdate.getDate(); 
+const currentdate = new Date();
+const date = currentdate.getFullYear() + "-" + (currentdate.getMonth() + 1) + "-" + currentdate.getDate();
+
 
 client.on("message", (msg) => { //when message is received
+
+  var data = {}
+  data.table = []
+
+  console.log(msg.author.username + " {" + msg.author.id + "} : " + msg.content); //log message
+  data.table.push(msg.author.id);
+
+  fs.writeFile("result.json"), json.stringify(data), function (err) {
+    if (err) throw err;
+    console.log('complete');
+  }
+
   switch (msg.content) {
     case "!date":
       msg.reply(date);
