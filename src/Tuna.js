@@ -32,23 +32,28 @@ const time = new Date(currenttime).toLocaleTimeString("en", {
 
 //date
 const currentdate = new Date();
-const date = currentdate.getFullYear() + "-" + (currentdate.getMonth() + 1) + "-" + currentdate.getDate();
+const date =
+  currentdate.getFullYear() +
+  "-" +
+  (currentdate.getMonth() + 1) +
+  "-" +
+  currentdate.getDate();
 
+client.on("message", (msg) => {
+  //when message is received
 
-client.on("message", (msg) => { //when message is received
-
-  var data = {}
-  data.table = []
-
-  console.log(msg.author.username + " {" + msg.author.id + "} : " + msg.content); //log message
-  data.table.push(msg.author.id);
-
-  fs.writeFile("result.json"), json.stringify(data), function (err) {
-    if (err) throw err;
-    console.log('complete');
-  }
+  var data = {};
+  data.id = [];
 
   switch (msg.content) {
+    case "!ADP":
+      data.id.push(msg.author.id);
+
+      fs.writeFile("result.json", JSON.stringify(data), function (err) {
+        if (err) throw err;
+        console.log("complete");
+      });
+      break;
     case "!date":
       msg.reply(date);
       break;
@@ -75,7 +80,9 @@ client.on("message", async (message) => {
   const args = message.content.slice(prefix.length).trim().split(/ +/g);
   const command = args.shift().toLowerCase();
 
-  switch (command) {  //switch case for commands
+  switch (
+    command //switch case for commands
+  ) {
     case "play":
       execute(message, serverQueue);
       break;
