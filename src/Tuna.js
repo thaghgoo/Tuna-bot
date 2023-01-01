@@ -2,7 +2,8 @@ const { executionAsyncResource } = require("async_hooks");
 const ytdl = require("ytdl-core"); //import ytdl-core
 const { YTSearcher } = require("ytsearcher");
 const { Client, Intents } = require("discord.js"); //import discord.js
-var fs = require("fs"); //import fs
+const fs = require("fs"); //import fs
+const { EmbedBuilder } = require('discord.js');
 
 const searcher = new YTSearcher({
   //use ytsearcher and google api key for search on youtube
@@ -63,9 +64,26 @@ client.on("message", (msg) => {
 });
 
 client.on("message", (msg) => {
+//   if (msg.content.startsWith("!avatar")) {
+//     var avuser = msg.mentions.members.first() || msg.member;
+//     const avatar = msg.author.avatarURL() 
+//     msg.channel.send(`Here is ${avuser}'s avatar :`);
+// }
+  if (msg.content === "!avatar") {
+    const exampleEmbed = new EmbedBuilder()
+	  .setColor(0x0099FF)
+	  .setTitle('here is your avatar')
+	  .setAuthor({ name: msg.author.username, iconURL: msg.author.avatarURL, url: '#' })
+	  // .setDescription('')
+	  .setImage(msg.author.avatarURL())
+	  .setTimestamp()
+	  // .setFooter({ text: ''});
+    
+    msg.reply({ embeds: [exampleEmbed] });
+  }
   if (msg.content.startsWith("!play")) {
-    //if message starts with !play
-    const voiceChannel = msg.member.voice.channel; //get voice channel
+    const voiceChannel = msg.member.voiceChannel; //get voice channel
+    console.log(msg.member)
     if (!voiceChannel) {
       //if no voice channel
       msg.channel.send("You need to be in a voice channel to play music!");
@@ -191,84 +209,4 @@ client.on("message", (msg) => {
     });
   });
   */
-
-  function play(connection, msg) {
-    //play song
-    const dispatcher = connection.play(
-      ytdl(queue.get(msg.guild.id)[0], { filter: "audioonly" })
-    ); //play song
-    dispatcher
-      .on("finish", () => {
-        //when song is finished
-        queue.get(msg.guild.id).shift(); //remove song from queue
-        if (queue.get(msg.guild.id).length === 0) {
-          //if no songs in queue
-          queue.delete(msg.guild.id); //delete queue
-          msg.channel.send("Queue is empty.");
-        } else {
-          //if songs in queue
-          play(connection, msg); //play next song
-        }
-      })
-      .on("error", (err) => {
-        //when error
-        console.log(err);
-      })
-      .on("start", () => {
-        //when song starts
-        msg.channel.send(`Now playing: ${queue.get(msg.guild.id)[0]}`);
-      })
-      .on("finish", () => {
-        //when song is finished
-        queue.get(msg.guild.id).shift(); //remove song from queue
-        if (queue.get(msg.guild.id).length === 0) {
-          //if no songs in queue
-          queue.delete(msg.guild.id); //delete queue
-          msg.channel.send("Queue is empty.");
-        } else {
-          //if songs in queue
-          play(connection, msg); //play next song
-        }
-      })
-      .on("error", (err) => {
-        //when error
-        console.log(err);
-      })
-      .on("start", () => {
-        //when song starts
-        msg.channel.send(`Now playing: ${queue.get(msg.guild.id)[0]}`);
-      })
-      .on("finish", () => {
-        //when song is finished
-        queue.get(msg.guild.id).shift(); //remove song from queue
-        if (queue.get(msg.guild.id).length === 0) {
-          //if no songs in queue
-          queue.delete(msg.guild.id); //delete queue
-          msg.channel.send("Queue is empty.");
-        } else {
-          //if songs in queue
-          play(connection, msg); //play next song
-        }
-      })
-      .on("error", (err) => {
-        //when error
-        console.log(err);
-      })
-      .on("start", () => {
-        //when song starts
-        msg.channel.send(`Now playing: ${queue.get(msg.guild.id)[0]}`);
-      })
-      .on("finish", () => {
-        //when song is finished
-        queue.get(msg.guild.id).shift(); //remove song from queue
-        if (queue.get(msg.guild.id).length === 0) {
-          //if no songs in queue
-          queue.delete(msg.guild.id); //delete queue
-          msg.channel.send("Queue is empty.");
-        } else {
-          //if songs in queue
-          play(connection, msg); //play next song
-        }
-      });
-  }
-}); //the end
+});
