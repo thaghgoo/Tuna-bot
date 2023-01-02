@@ -1,9 +1,11 @@
 const { executionAsyncResource } = require("async_hooks");
 const ytdl = require("ytdl-core"); //import ytdl-core
 const { YTSearcher } = require("ytsearcher");
-const { Client, Intents } = require("discord.js"); //import discord.js
+const { Client, Intents, Interaction } = require("discord.js"); //import discord.js
 const fs = require("fs"); //import fs
-const { EmbedBuilder } = require('discord.js');
+const { MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder } = require("@discordjs/builders");
+const { intersection } = require("zod");
 
 const searcher = new YTSearcher({
   //use ytsearcher and google api key for search on youtube
@@ -64,26 +66,65 @@ client.on("message", (msg) => {
 });
 
 client.on("message", (msg) => {
-//   if (msg.content.startsWith("!avatar")) {
-//     var avuser = msg.mentions.members.first() || msg.member;
-//     const avatar = msg.author.avatarURL() 
-//     msg.channel.send(`Here is ${avuser}'s avatar :`);
-// }
-  if (msg.content === "!avatar") {
-    const exampleEmbed = new EmbedBuilder()
-	  .setColor(0x0099FF)
-	  .setTitle('here is your avatar')
-	  .setAuthor({ name: msg.author.username, iconURL: msg.author.avatarURL, url: '#' })
-	  // .setDescription('')
-	  .setImage(msg.author.avatarURL())
-	  .setTimestamp()
-	  // .setFooter({ text: ''});
-    
-    msg.reply({ embeds: [exampleEmbed] });
+  //   if (msg.content.startsWith("!avatar")) {
+  //     var username = msg.mentions.members.first() || msg.member;
+  //     const avatar = msg.author.avatarURL()
+  //     msg.channel.send(`Here is ${avuser}'s avatar :`);
+  // }
+  if (msg.content.startsWith("!userinfo")) {
+    if (msg.author.bot == true) {
+      msg.author.bot = "true";
+    } else msg.author.bot == false;
+    {
+      msg.author.bot = "false";
+    }
+    if (msg.member.nickname == null) {
+      msg.member.nickname = "null";
+    }
+    const userinfoEmbed = new MessageEmbed()
+      .setColor(0x0099ff)
+      .setTitle("user info report")
+      .setAuthor({ name: "Tuna", url: "https://discord.gg/zhPfWXvb" })
+      .addFields(
+        { name: "user-name", value: msg.author.tag },
+        { name: "nick-name", value: msg.member.nickname },
+        // { name: '\u200B', value: '\u200B' },
+        { name: "user-id", value: msg.author.id },
+        { name: "is-bot", value: msg.author.bot }
+      )
+      .setImage(msg.author.avatarURL())
+      .setTimestamp()
+      .setFooter({ text: "by Tuna <3" });
+
+    msg.channel.send({ embeds: [userinfoEmbed] });
+  }
+  if (msg.content.startsWith("!serverinfo")) {
+    const serverinfoEmbed = new MessageEmbed()
+      .setColor(0x0099ff)
+      .setTitle("server info")
+      .setAuthor({ name: "Tuna" })
+      .setThumbnail(msg.guild.iconURL())
+      .addFields(
+        { name: "server-name", value: msg.guild.name },
+        { name: "server-id", value: msg.guild.id },
+        { name: "server-features", value: msg.guild.features.join("/  ") },
+        { name: "verification-Level", value: msg.guild.verificationLevel },
+        { name: "nsfw-level", value: msg.guild.nsfwLevel },
+        { name: "memberCount", value: msg.guild.memberCount.toString() },
+        { name: "max-member", value: msg.guild.maximumMembers.toString() },
+        { name: "ownerID", value: msg.guild.ownerId }
+      )
+      .setTimestamp()
+      .setFooter({ text: "by Tuna <3" });
+
+    msg.channel.send({ embeds: [serverinfoEmbed] });
+  }
+  if (msg.content.startsWith("test")) {
+    console.log(msg.member);
   }
   if (msg.content.startsWith("!play")) {
     const voiceChannel = msg.member.voiceChannel; //get voice channel
-    console.log(msg.member)
+    console.log(msg.member);
     if (!voiceChannel) {
       //if no voice channel
       msg.channel.send("You need to be in a voice channel to play music!");
