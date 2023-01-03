@@ -65,12 +65,12 @@ client.on("message", (msg) => {
   }
 });
 
+var User_Tag = function (userID) {
+  var user = client.users.cache.get(userID);
+  return user;
+};
+
 client.on("message", (msg) => {
-  //   if (msg.content.startsWith("!avatar")) {
-  //     var username = msg.mentions.members.first() || msg.member;
-  //     const avatar = msg.author.avatarURL()
-  //     msg.channel.send(`Here is ${avuser}'s avatar :`);
-  // }
   if (msg.content.startsWith("!userinfo")) {
     if (msg.author.bot == true) {
       msg.author.bot = "true";
@@ -88,7 +88,7 @@ client.on("message", (msg) => {
       .addFields(
         { name: "user-name", value: msg.author.tag },
         { name: "nick-name", value: msg.member.nickname },
-        // { name: '\u200B', value: '\u200B' },
+        { name: '\u200B', value: '\u200B' },
         { name: "user-id", value: msg.author.id },
         { name: "is-bot", value: msg.author.bot }
       )
@@ -99,20 +99,40 @@ client.on("message", (msg) => {
     msg.channel.send({ embeds: [userinfoEmbed] });
   }
   if (msg.content.startsWith("!serverinfo")) {
+    var member = msg.guild.members.cache.filter(
+      (member) => !member.user.bot
+    ).size;
+    var bot = msg.guild.members.cache.filter((member) => member.user.bot).size;
     const serverinfoEmbed = new MessageEmbed()
       .setColor(0x0099ff)
-      .setTitle("server info")
+      .setTitle(`${msg.guild.name} information`)
       .setAuthor({ name: "Tuna" })
       .setThumbnail(msg.guild.iconURL())
       .addFields(
-        { name: "server-name", value: msg.guild.name },
-        { name: "server-id", value: msg.guild.id },
-        { name: "server-features", value: msg.guild.features.join("/  ") },
-        { name: "verification-Level", value: msg.guild.verificationLevel },
-        { name: "nsfw-level", value: msg.guild.nsfwLevel },
-        { name: "memberCount", value: msg.guild.memberCount.toString() },
-        { name: "max-member", value: msg.guild.maximumMembers.toString() },
-        { name: "ownerID", value: msg.guild.ownerId }
+        { name: "server-id", value: msg.guild.id, inline: true },
+        {
+          name: "verification-Level",
+          value: msg.guild.verificationLevel,
+          inline: true,
+        },
+        { name: "\u200B", value: "\u200B" },
+        { name: "nsfw-level", value: msg.guild.nsfwLevel, inline: true },
+        {
+          name: "total-member",
+          value: msg.guild.memberCount.toString(),
+          inline: true,
+        },
+        { name: "\u200B", value: "\u200B" },
+        {
+          name: "max-member",
+          value: msg.guild.maximumMembers.toString(),
+          inline: true,
+        },
+        {
+          name: "ownerID",
+          value: msg.guild.ownerId,
+          inline: true,
+        }
       )
       .setTimestamp()
       .setFooter({ text: "by Tuna <3" });
@@ -120,7 +140,7 @@ client.on("message", (msg) => {
     msg.channel.send({ embeds: [serverinfoEmbed] });
   }
   if (msg.content.startsWith("test")) {
-    console.log(msg.member);
+    console.log(msg.guild);
   }
   if (msg.content.startsWith("!play")) {
     const voiceChannel = msg.member.voiceChannel; //get voice channel
