@@ -11,6 +11,7 @@ const {
 } = require("discord.js");
 const { REST, Routes } = require("discord.js");
 
+
 const searcher = new YTSearcher({
   //use ytsearcher and google api key for search on youtube
   key: "AIzaSyDe1RX3kxAheSg2AoP2IvmQHOTXHQKkOU8",
@@ -69,6 +70,22 @@ client.on("message", (msg) => {
       break;
   }
 });
+
+const rest = new REST({ version: "10" }).setToken(process.env.CLIENT_TOKEN);
+
+(async () => {
+  try {
+    console.log("Started refreshing application (/) commands.");
+
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
+      body: commands,
+    });
+
+    console.log("Successfully reloaded application (/) commands.");
+  } catch (error) {
+    console.error(error);
+  }
+})();
 
 client.on("messageCreate", (msg) => {
   if (msg.author.bot) {
