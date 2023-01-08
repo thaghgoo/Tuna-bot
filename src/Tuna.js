@@ -1,11 +1,15 @@
-const { executionAsyncResource } = require("async_hooks");
 const ytdl = require("ytdl-core"); //import ytdl-core
 const { YTSearcher } = require("ytsearcher");
-const { Client, Intents, Interaction } = require("discord.js"); //import discord.js
+const { Client, GatewayIntentBits, Partials } = require("discord.js"); //import discord.js
 const fs = require("fs"); //import fs
 const { MessageEmbed } = require("discord.js");
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { intersection } = require("zod");
+const packageJSON = require("../package.json");
+const {
+  ApplicationCommandType,
+  ApplicationCommandOptionType,
+} = require("discord.js");
+const { REST, Routes } = require("discord.js");
 
 const searcher = new YTSearcher({
   //use ytsearcher and google api key for search on youtube
@@ -16,13 +20,14 @@ const searcher = new YTSearcher({
 require("dotenv").config(); //initialize dotenv
 
 const client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], //initialize discord.js
+  intents: [GatewayIntentBits.Guilds],
+  partials: [Partials.Channel],
 }); //create new client
 
 const queue = new Map(); //create new map for queues
 
 client.on("ready", () => {
-  console.log(`Tuna: im online!`);
+  console.log(`${client.user.tag}: im online!`);
 });
 
 client.login(process.env.CLIENT_TOKEN); //login bot using token
@@ -65,13 +70,22 @@ client.on("message", (msg) => {
   }
 });
 
-var User_Tag = function (userID) {
-  var user = client.users.cache.get(userID);
-  return user;
-};
+client.on("messageCreate", (msg) => {
+  if (msg.author.bot) {
+    return;
+  }
+  if (msg.content == "!status") {
+    const discordJSVersion = packageJSON.dependencies["discord.js"];
+    const statusembed = new MessageEmbed()
+      .setColor("RANDOM")
+      .setTitle(`Bot stats - ${client.user.tag}`)
+      .addField("Discord.js version", discordJSVersion);
+    msg.channel.send({
+      embeds: [statusembed],
+    });
+  }
 
-client.on("message", (msg) => {
-  if (msg.content.startsWith("!userinfo")) {
+  if (msg.content == "!userinfo") {
     if (msg.author.bot == true) {
       msg.author.bot = "true";
     } else msg.author.bot == false;
@@ -82,15 +96,15 @@ client.on("message", (msg) => {
       msg.member.nickname = "null";
     }
     const userinfoEmbed = new MessageEmbed()
-      .setColor(0x0099ff)
+      .setColor("RANDOM")
       .setTitle("user info report")
       .setAuthor({ name: "Tuna", url: "https://discord.gg/zhPfWXvb" })
       .addFields(
-        { name: "user-name", value: msg.author.tag },
-        { name: "nick-name", value: msg.member.nickname },
-        { name: '\u200B', value: '\u200B' },
-        { name: "user-id", value: msg.author.id },
-        { name: "is-bot", value: msg.author.bot }
+        { name: "user-name", value: msg.author.tag, inline: true },
+        { name: "nick-name", value: msg.member.nickname, inline: true },
+        { name: "\u200B", value: "\u200B" },
+        { name: "user-id", value: msg.author.id, inline: true },
+        { name: "is-bot", value: msg.author.bot, inline: true }
       )
       .setImage(msg.author.avatarURL())
       .setTimestamp()
@@ -98,13 +112,9 @@ client.on("message", (msg) => {
 
     msg.channel.send({ embeds: [userinfoEmbed] });
   }
-  if (msg.content.startsWith("!serverinfo")) {
-    var member = msg.guild.members.cache.filter(
-      (member) => !member.user.bot
-    ).size;
-    var bot = msg.guild.members.cache.filter((member) => member.user.bot).size;
+  if (msg.content == "!serverinfo") {
     const serverinfoEmbed = new MessageEmbed()
-      .setColor(0x0099ff)
+      .setColor("RANDOM")
       .setTitle(`${msg.guild.name} information`)
       .setAuthor({ name: "Tuna" })
       .setThumbnail(msg.guild.iconURL())
@@ -138,9 +148,6 @@ client.on("message", (msg) => {
       .setFooter({ text: "by Tuna <3" });
 
     msg.channel.send({ embeds: [serverinfoEmbed] });
-  }
-  if (msg.content.startsWith("test")) {
-    console.log(msg.guild);
   }
   if (msg.content.startsWith("!play")) {
     const voiceChannel = msg.member.voiceChannel; //get voice channel
