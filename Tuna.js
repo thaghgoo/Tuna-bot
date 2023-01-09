@@ -109,16 +109,6 @@ client.on("messageCreate", (msg) => {
   if (msg.author.bot) {
     return;
   }
-  if (msg.content == "!status") {
-    const discordJSVersion = packageJSON.dependencies["discord.js"];
-    const statusembed = new EmbedBuilder()
-      .setColor(255, 0, 255)
-      .setTitle(`Bot stats - ${client.user.tag}`)
-      .addFields({ name: "Discord.js version", value: discordJSVersion });
-    msg.channel.send({
-      embeds: [statusembed],
-    });
-  }
 
   if (msg.content == "!userinfo") {
     if (msg.author.bot == true) {
