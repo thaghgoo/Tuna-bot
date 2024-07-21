@@ -1,4 +1,4 @@
- # welcome to the description of tuna 
+ # tuna bot
 
 The goal of this project is a music player robot in Discord,
 and we are developing it every day,
