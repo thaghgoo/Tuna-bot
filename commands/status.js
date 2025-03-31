@@ -7,16 +7,13 @@ module.exports = {
     .setDescription("Shows bot status information"),
   async execute(interaction) {
     try {
+      await interaction.deferReply();
+
       //version
       const discordJSVersion =
         packageJSON.dependencies["discord.js"]?.replace(/^[\^~]/, "") ||
         "Unknown";
       const nodeVersion = process.version;
-
-      await interaction.editReply({
-        content: "Fetching status information...",
-        embeds: [],
-      });
 
       const embed = new EmbedBuilder()
         .setColor(0x7289da)
@@ -38,7 +35,7 @@ module.exports = {
       });
     } catch (error) {
       console.error("Status command error:", error);
-      await interaction.editReply({
+      await interaction.followUp({
         content: "Failed to gather status information!",
         ephemeral: true,
       });
