@@ -10,10 +10,6 @@ const {
 const fs = require("node:fs");
 const { EmbedBuilder } = require("discord.js");
 const packageJSON = require("./package.json");
-const {
-  ApplicationCommandType,
-  ApplicationCommandOptionType,
-} = require("discord.js");
 const path = require("node:path");
 
 const { REST } = require("@discordjs/rest");
@@ -31,9 +27,9 @@ const client = new Client({
   intents: [
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildBans,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [Partials.Channel],
 }); //create new client
@@ -53,48 +49,78 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 //this section is for updating slashcommands on every start
+//check if the bot is online
+let isBotReady = false;
+let commandsRegistered = false;
 
-client.on("ready", async () => {
+client.on("ready", () => {
   console.log(`${client.user.tag} is online!`);
-  const rest = new REST({ version: "9" }).setToken(process.env.CLIENT_TOKEN);
-
-  try {
-    const commands = await client.application.commands.fetch();
-    console.log(
-      "Registered commands:",
-      commands.map((cmd) => cmd.name)
-    );
-  } catch (err) {
-    console.error("Failed to fetch commands:", err);
-  }
-  try {
-    await rest.put(
-      Routes.applicationCommands(client.user.id, process.env.SERVER_ID),
-      {
-        body: [...client.commands.values()].map((cmd) => cmd.data.toJSON()),
-      }
-    );
-    console.log("Commands registered successfully");
-  } catch (error) {
-    console.error("Command registration failed:", error);
-  }
+  isBotReady = true;
+  attemptCommandRegistration();
 });
+
+function attemptCommandRegistration() {
+  if (!isBotReady || commandsRegistered) return;
+
+  setTimeout(async () => {
+    try {
+      const commands = await client.application.commands.fetch();
+      console.log(
+        "Registered commands:",
+        commands.map((cmd) => cmd.name)
+      );
+    } catch (err) {
+      console.error("Failed to fetch commands:", err);
+    }
+    try {
+      const rest = new REST({
+        version: "9",
+        timeout: 30000,
+        retries: 3,
+      }).setToken(process.env.CLIENT_TOKEN);
+
+      console.log("Attempting command registration...");
+      await rest.put(Routes.applicationCommands(client.user.id), {
+        body: [...client.commands.values()].map((cmd) => cmd.data.toJSON()),
+      });
+
+      commandsRegistered = true;
+      console.log("Commands registered successfully");
+    } catch (error) {
+      console.error("Failed to register commands, retrying...", error);
+      attemptCommandRegistration();
+    }
+  }, 3000);
+}
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
 
-  if (!command) return;
+  if (!command) {
+    console.error(`No command matching ${interaction.commandName} was found.`);
+    return;
+  }
 
   try {
+    console.log(`Executing command ${interaction.commandName}`);
     await command.execute(interaction);
   } catch (error) {
+    console.error(`Error executing ${interaction.commandName}`);
     console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "There was an error while executing this command!",
+        ephemeral: true,
+      });
+    } else {
+      await interaction.followUp({
+        content: "There was an error while executing this command!",
+        ephemeral: true,
+      });
+    }
   }
 });
 
