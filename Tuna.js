@@ -16,13 +16,16 @@ const {
 } = require("discord.js");
 const path = require("node:path");
 
-const searcher = new YTSearcher({
-  //use ytsearcher and google api key for search on youtube
-  key: "AIzaSyDe1RX3kxAheSg2AoP2IvmQHOTXHQKkOU8",
-  revealed: true,
-});
+const { REST } = require("@discordjs/rest");
+const { Routes } = require("discord-api-types/v9");
+const { joinVoiceChannel, getVoiceConnection } = require("@discordjs/voice");
 
 require("dotenv").config(); //initialize dotenv
+const searcher = new YTSearcher({
+  //use ytsearcher and google api key for search on youtube
+  key: process.env.GOOGLE_API_KEY,
+  revealed: true,
+});
 
 const client = new Client({
   intents: [
@@ -37,60 +40,45 @@ const client = new Client({
 
 const queue = new Map(); //create new map for queues
 
-client.on("ready", () => {
-  console.log(`${client.user.tag}: im online!`);
-});
-
 client.login(process.env.CLIENT_TOKEN); //login bot using token
-//time
-const currenttime = Date(); //get current time
-
-const time = new Date(currenttime).toLocaleTimeString("en", {
-  timeStyle: "short",
-  hour12: true,
-});
-
-//date
-const currentdate = new Date();
-const date =
-  currentdate.getFullYear() +
-  "-" +
-  (currentdate.getMonth() + 1) +
-  "-" +
-  currentdate.getDate();
-
-client.on("messageCreate", (msg) => {
-  //when message is received
-  switch (msg.content) {
-    case "!date":
-      msg.reply(date);
-      break;
-    case "!time":
-      msg.reply(time);
-      break;
-    case "play":
-      msg.reply("You mean !Play ?");
-      break;
-    case "stop":
-      msg.reply("you mean !stop ?");
-      break;
-    case "leave":
-      msg.reply("you mean !leave ?");
-      break;
-  }
-});
 
 client.commands = new Collection();
-const commandsPath = path.join(__dirname, "commands");
+
 const commandFiles = fs
-  .readdirSync(commandsPath)
+  .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = require(filePath);
+  const command = require(`./commands/${file}`);
   client.commands.set(command.data.name, command);
 }
+//this section is for updating slashcommands on every start
+
+client.on("ready", async () => {
+  console.log(`${client.user.tag} is online!`);
+  const rest = new REST({ version: "9" }).setToken(process.env.CLIENT_TOKEN);
+
+  try {
+    const commands = await client.application.commands.fetch();
+    console.log(
+      "Registered commands:",
+      commands.map((cmd) => cmd.name)
+    );
+  } catch (err) {
+    console.error("Failed to fetch commands:", err);
+  }
+  try {
+    await rest.put(
+      Routes.applicationCommands(client.user.id, process.env.SERVER_ID),
+      {
+        body: [...client.commands.values()].map((cmd) => cmd.data.toJSON()),
+      }
+    );
+    console.log("Commands registered successfully");
+  } catch (error) {
+    console.error("Command registration failed:", error);
+  }
+});
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -110,11 +98,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-client.on("messageCreate", (msg) => {
+client.on("messageCreate", async (msg) => {
   if (msg.author.bot) {
     return;
   }
-
+  if (msg.content == "!ping") {
+    msg.reply("pong");
+  }
+  if (msg.content == "!serverid") {
+    msg.reply(msg.guild.id);
+  }
   if (msg.content == "!userinfo") {
     if (msg.author.bot == true) {
       msg.author.bot = "true";
@@ -180,36 +173,35 @@ client.on("messageCreate", (msg) => {
     msg.channel.send({ embeds: [serverinfoEmbed] });
   }
   if (msg.content.startsWith("!play")) {
-    const voiceChannel = msg.member.voiceChannel; //get voice channel
-    console.log(msg.member);
+    const voiceChannel = msg.member.voice.channel;
+    console.log(voiceChannel);
     if (!voiceChannel) {
-      //if no voice channel
       msg.channel.send("You need to be in a voice channel to play music!");
       return;
     }
-    const permissions = voiceChannel.permissionsFor(msg.client.user); //get permissions for bot
+    const permissions = voiceChannel.permissionsFor(msg.client.user);
     if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-      //if no permissions
       msg.channel.send(
         "I need the permissions to join and speak in your voice channel!"
       );
       return;
     }
-    if (queue.has(msg.guild.id)) {
-      //if queue has guild id
-      queue.get(msg.guild.id).push(msg.content.substring(6)); //add song to queue
+
+    const connection = getVoiceConnection(msg.guild.id);
+    if (connection) {
+      queue.get(msg.guild.id).push(msg.content.substring(6));
       msg.channel.send(`Added to queue: ${msg.content.substring(6)}`);
     } else {
-      //if no queue
-      queue.set(msg.guild.id, [msg.content.substring(6)]); //create queue
+      queue.set(msg.guild.id, [msg.content.substring(6)]);
       msg.channel.send(`Added to queue: ${msg.content.substring(6)}`);
-    }
-    if (!client.voice.connections.has(msg.guild.id)) {
-      //if no connection
-      voiceChannel.join().then((connection) => {
-        //join voice channel
-        play(connection, msg); //play song
+
+      // Join the voice channel using joinVoiceChannel
+      const connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: msg.guild.id,
+        adapterCreator: msg.guild.voiceAdapterCreator,
       });
+      play(connection, msg);
     }
   } else if (msg.content.startsWith("!skip")) {
     //if message starts with !skip
